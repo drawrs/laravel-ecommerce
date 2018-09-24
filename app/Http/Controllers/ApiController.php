@@ -31,5 +31,40 @@ class ApiController extends Controller
                         'data')
                     );
     }
-    
+    public function registerUser(Request $request){
+        $user = new User;
+
+        $email = $request->email;
+        $password = bcrypt($request->password);
+        $first_name = $request->first_name;
+        $last_name = $request->last_name;
+        //'name', 'email', 'password', 'first_name', 'last_name', 'status'
+        $isSuccess = false;
+        $message = "Register gagal!";
+        $data = null;
+        $response_status = 200;
+
+        $create = null;
+        try {
+            // insert info user tbl
+            $create = $user->create(compact('email', 'password', 'first_name', 'last_name'));
+        } catch (\Exception $email){
+            $errorCode = $e->errorInfo[1];
+            if($errorCode == 1062){
+                $isSuccess = false;
+                $message = "Email telah terdaftar";
+                $data = null;
+            }
+        }
+
+        if (!is_null($create)) {
+            // insert seller detail
+            $isSuccess = true;
+            $message = "Register berhasil";
+            $data = $create;
+        }
+
+        return response()->json(compact('isSuccess', 'response_status', 'message', 'data'));
+
+    }
 }
