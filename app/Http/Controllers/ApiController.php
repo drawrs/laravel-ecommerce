@@ -4,10 +4,26 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\User;
+use App\Product;
+use App\ProductPhoto;
+use App\Category;
 use Auth;
+
 class ApiController extends Controller
 {
     //
+    protected $userTable;
+    protected $productTable;
+    protected $categoryTable;
+    protected $productPhotoTable;
+
+    function __construct()
+    {
+        $this->userTable = new User;
+        $this->categoryTable = new Category;
+        $this->productTable = new Product;
+        $this->productPhotoTable = new ProductPhoto;
+    }
     public function userLogin(Request $request){
         $email = $request->email;
         $password = $request->password;
@@ -65,6 +81,26 @@ class ApiController extends Controller
         }
 
         return response()->json(compact('isSuccess', 'response_status', 'message', 'data'));
+    }
 
+    public function getHomeProducts(Request $request){
+        $products = $this->productTable->all();
+
+        foreach ($products as $product) {
+            $product->productPhotos;
+        }
+
+        if (!empty($products)) {
+            $isSuccess = true;
+            $response_status = 200;
+            $message = "Berhasil mendapatkan data";
+        } else {
+            $isSuccess = false;
+            $response_status = 200;
+            $message = "Gagal mendapatkan data";
+        }
+        $data = $products;
+
+        return response()->json(compact('isSuccess', 'response_status', 'message', 'data'));
     }
 }
