@@ -130,4 +130,20 @@ class ApiController extends Controller
 
         return response()->json(compact('isSuccess', 'response_status', 'message', 'data'));
     }
+
+    public function getCategories(Request $request){
+        $data = $this->categoryTable->all();
+
+        if (!empty($data)) {
+            $isSuccess = true;
+            $response_status = 200;
+            $message = "Berhasil mendapatkan data";
+        } else {
+            $isSuccess = false;
+            $response_status = 200;
+            $message = "Gagal mendapatkan data";
+        }
+
+        return response()->json(compact('isSuccess', 'response_status', 'message', 'data'));
+    }
 }

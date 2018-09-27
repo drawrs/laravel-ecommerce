@@ -20,3 +20,4 @@ Route::any('login', 'ApiController@userLogin');
 Route::any('register', 'ApiController@registerUser');
 Route::any('get-home-products', 'ApiController@getHomeProducts');
 Route::any('get-promotion-products', 'ApiController@getPromotionProducts');
+Route::any('get-categories', 'ApiController@getCategories');
