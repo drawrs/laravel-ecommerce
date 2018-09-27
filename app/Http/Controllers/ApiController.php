@@ -64,7 +64,7 @@ class ApiController extends Controller
         try {
             // insert info user tbl
             $create = $user->create(compact('email', 'password', 'first_name', 'last_name'));
-        } catch (\Exception $email){
+        } catch (\Exception $e){
             $errorCode = $e->errorInfo[1];
             if($errorCode == 1062){
                 $isSuccess = false;
@@ -88,6 +88,33 @@ class ApiController extends Controller
 
         foreach ($products as $product) {
             $product->productPhotos;
+        }
+
+        if (!empty($products)) {
+            $isSuccess = true;
+            $response_status = 200;
+            $message = "Berhasil mendapatkan data";
+        } else {
+            $isSuccess = false;
+            $response_status = 200;
+            $message = "Gagal mendapatkan data";
+        }
+        $data = $products;
+
+        return response()->json(compact('isSuccess', 'response_status', 'message', 'data'));
+    }
+
+    public function getPromotionProducts(Request $request){
+        $products = $this->productTable->where('show_in_slider', '1')->get();
+
+        foreach ($products as $product) {
+            $product['product_cover'] = null;
+            foreach($product->productPhotos as $photo){
+                if ($photo->is_cover == "1"){
+                    $product['product_cover'] = $photo->file_name;
+                }
+            }
+
         }
 
         if (!empty($products)) {

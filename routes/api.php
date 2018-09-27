@@ -19,3 +19,4 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 Route::any('login', 'ApiController@userLogin');
 Route::any('register', 'ApiController@registerUser');
 Route::any('get-home-products', 'ApiController@getHomeProducts');
+Route::any('get-promotion-products', 'ApiController@getPromotionProducts');
