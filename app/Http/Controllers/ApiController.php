@@ -87,7 +87,12 @@ class ApiController extends Controller
         $products = $this->productTable->all();
 
         foreach ($products as $product) {
-            $product->productPhotos;
+            $product['product_cover'] = null;
+            foreach($product->productPhotos as $photo){
+                if ($photo->is_cover == "1"){
+                    $product['product_cover'] = $photo->file_name;
+                }
+            }
         }
 
         if (!empty($products)) {
@@ -114,7 +119,6 @@ class ApiController extends Controller
                     $product['product_cover'] = $photo->file_name;
                 }
             }
-
         }
 
         if (!empty($products)) {
@@ -135,6 +139,29 @@ class ApiController extends Controller
         $data = $this->categoryTable->all();
 
         if (!empty($data)) {
+            $isSuccess = true;
+            $response_status = 200;
+            $message = "Berhasil mendapatkan data";
+        } else {
+            $isSuccess = false;
+            $response_status = 200;
+            $message = "Gagal mendapatkan data";
+        }
+
+        return response()->json(compact('isSuccess', 'response_status', 'message', 'data'));
+    }
+    public function getProduct(Request $request){
+        $data = $this->productTable->find($request->product_id);
+
+        if (!empty($data)) {
+            $data['product_cover'] = null;
+            foreach($data->productPhotos as $photo){
+                if ($data->is_cover == "1"){
+                    $product['product_cover'] = $photo->file_name;
+                }
+            }
+            $data->category;
+            // response message
             $isSuccess = true;
             $response_status = 200;
             $message = "Berhasil mendapatkan data";
