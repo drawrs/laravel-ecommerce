@@ -173,4 +173,34 @@ class ApiController extends Controller
 
         return response()->json(compact('isSuccess', 'response_status', 'message', 'data'));
     }
+
+    public function searchProduct(Request $request){
+        $keyword = $request->q;
+        $products = $this->productTable
+                        ->where('title', 'LIKE', '%'. $keyword .'%')
+                        ->orWhere('description', 'LIKE', '%'. $keyword .'%')
+                        ->get();
+
+        foreach ($products as $product) {
+            $product['product_cover'] = null;
+            foreach($product->productPhotos as $photo){
+                if ($photo->is_cover == "1"){
+                    $product['product_cover'] = $photo->file_name;
+                }
+            }
+        }
+
+        if (!empty($products)) {
+            $isSuccess = true;
+            $response_status = 200;
+            $message = "Berhasil mendapatkan data";
+        } else {
+            $isSuccess = false;
+            $response_status = 200;
+            $message = "Gagal mendapatkan data";
+        }
+        $data = $products;
+
+        return response()->json(compact('isSuccess', 'response_status', 'message', 'data'));
+    }
 }
