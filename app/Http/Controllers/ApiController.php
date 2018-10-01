@@ -227,4 +227,23 @@ class ApiController extends Controller
 
         return response()->json(compact('isSuccess', 'response_status', 'message', 'data'));
     }
+    public function updateUserProfile(Request $request){
+        $data = $this->userTable->find($request->user_id);
+        $isSuccess = false;
+        $message = "Gagal Update";
+
+        if (!empty($data)) {
+            $first_name = $request->first_name;
+            $last_name = $request->last_name;
+            //$email = $request->first_name;
+
+            $updateProfile = $data->update(compact('first_name', 'last_name'));
+            if ($updateProfile){
+                $isSuccess = true;
+                $message = "Berhasil update";
+                $data = $this->userTable->find($data->id);
+            }
+        }
+        return response()->json(compact('isSuccess', 'response_status', 'message', 'data'));
+    }
 }

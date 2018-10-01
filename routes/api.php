@@ -24,4 +24,5 @@ Route::any('get-categories', 'ApiController@getCategories');
 
 Route::any('get-product', 'ApiController@getProduct');
 Route::any('get-profile', 'ApiController@getUserProfile');
+Route::any('update-profile', 'ApiController@updateUserProfile');
 Route::any('search-products', 'ApiController@searchProduct');
