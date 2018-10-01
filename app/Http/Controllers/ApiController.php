@@ -6,8 +6,10 @@ use Illuminate\Http\Request;
 use App\User;
 use App\Product;
 use App\ProductPhoto;
+use App\ShippingAddress;
 use App\Category;
 use Auth;
+use DB;
 
 class ApiController extends Controller
 {
@@ -16,6 +18,7 @@ class ApiController extends Controller
     protected $productTable;
     protected $categoryTable;
     protected $productPhotoTable;
+    protected $shippingAddressTable;
 
     function __construct()
     {
@@ -23,6 +26,7 @@ class ApiController extends Controller
         $this->categoryTable = new Category;
         $this->productTable = new Product;
         $this->productPhotoTable = new ProductPhoto;
+        $this->shippingAddressTable = new ShippingAddress;
     }
     public function userLogin(Request $request){
         $email = $request->email;
@@ -245,5 +249,44 @@ class ApiController extends Controller
             }
         }
         return response()->json(compact('isSuccess', 'response_status', 'message', 'data'));
+    }
+    public function updateShippingAddress(Request $request){
+        $data = $this->shippingAddressTable->find($request->address_id);
+        $isSuccess = false;
+        $message = "Gagal mengupdate data";
+
+        if (!empty($data)) {
+            $title = $request->title;
+            $city = $request->city;
+            $province = $request->province;
+            $address = $request->address;
+            $zip_code = $request->zip_code;
+            $is_main_address = $request->is_main_address;
+            // set all row to is_main_address = 0 first
+
+            DB::table('shipping_addresses')
+                    ->where('user_id', $data->user_id)
+                    ->update(['is_main_address' => '0']);
+            
+            //save data
+            $updateAddress = $this->shippingAddressTable
+                                    ->find($request->address_id)
+                                    ->update(
+                                            compact('title', 
+                                                    'city', 
+                                                    'province', 
+                                                    'address',
+                                                    'zip_code', 
+                                                    'is_main_address')
+                                        );
+
+            if ($updateAddress) {
+                $isSuccess = true;
+                $message = "berhasil di update";
+                $data = $this->shippingAddressTable->find($data->id);
+            }
+
+            return response()->json(compact('isSuccess', 'response_status', 'message', 'data'));
+        }
     }
 }
