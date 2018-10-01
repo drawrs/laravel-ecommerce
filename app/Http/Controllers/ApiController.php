@@ -84,7 +84,15 @@ class ApiController extends Controller
     }
 
     public function getHomeProducts(Request $request){
-        $products = $this->productTable->all();
+        if ($request->has('q')) {
+            $keyword = $request->q;
+            $products = $this->productTable
+                            ->where('title', 'LIKE', '%'. $keyword .'%')
+                            ->orWhere('description', 'LIKE', '%'. $keyword .'%')
+                            ->get();
+        } else {
+            $products = $this->productTable->all();
+        }
 
         foreach ($products as $product) {
             $product['product_cover'] = null;
@@ -200,6 +208,22 @@ class ApiController extends Controller
             $message = "Gagal mendapatkan data";
         }
         $data = $products;
+
+        return response()->json(compact('isSuccess', 'response_status', 'message', 'data'));
+    }
+
+    public function getUserProfile(Request $request){
+        $data = $this->userTable->find($request->user_id);
+        $data->shippingAddress;
+
+        $isSuccess = true;
+        $message = "Berhasil mendapatkan data";
+
+        if (empty($data)) {
+            $isSuccess = false;
+            $message = "Gagal mendapatkan data";
+            $data = null;
+        }
 
         return response()->json(compact('isSuccess', 'response_status', 'message', 'data'));
     }
