@@ -28,3 +28,5 @@ Route::any('update-profile', 'ApiController@updateUserProfile');
 Route::any('update-shipping-address', 'ApiController@updateShippingAddress');
 Route::any('search-products', 'ApiController@searchProduct');
 Route::any('get-shopping-carts', 'ApiController@getShoppingCarts');
+
+Route::any('update-cart-item-qty', 'ApiController@updateCartItemQty');

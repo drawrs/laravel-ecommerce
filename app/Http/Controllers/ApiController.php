@@ -306,7 +306,25 @@ class ApiController extends Controller
             $isSuccess = false;
             $message = "Tidak ada data untuk ditampilkan !";
         }
-        
+
+        return response()->json(compact('isSuccess', 'response_status', 'message', 'data'));
+    }
+    public function updateCartItemQty(Request $request)
+    {
+        $data = $this->shoppingCartTable->find($request->cart_id);
+        $isSuccess = false;
+        $message = "Gagal mengupdate";
+
+        if (!empty($data)) {
+            $qty = $request->new_qty;
+            //update
+            $update = $data->update(compact('qty'));
+            if ($update) {
+                $isSuccess = true;
+                $message = "Berhasil diupdate";
+                $data = $this->shoppingCartTable->find($data->id);
+            }
+        }
         return response()->json(compact('isSuccess', 'response_status', 'message', 'data'));
     }
 }
