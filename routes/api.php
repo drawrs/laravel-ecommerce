@@ -30,3 +30,4 @@ Route::any('search-products', 'ApiController@searchProduct');
 Route::any('get-shopping-carts', 'ApiController@getShoppingCarts');
 
 Route::any('update-cart-item-qty', 'ApiController@updateCartItemQty');
+Route::any('delete-cart-item', 'ApiController@deleteCartItem');

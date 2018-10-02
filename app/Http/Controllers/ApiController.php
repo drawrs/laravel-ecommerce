@@ -299,7 +299,15 @@ class ApiController extends Controller
         $message = "Berhasil mendapatkan data";
 
         foreach ($data as $cart) {
-            $cart->product;
+            $product = $cart->product;
+            $product->category;
+
+            $product['product_cover'] = null;
+            foreach($product->productPhotos as $photo){
+                if ($photo->is_cover == "1"){
+                    $product['product_cover'] = $photo->file_name;
+                }
+            }
         }
 
         if (empty($data)) {
@@ -326,5 +334,19 @@ class ApiController extends Controller
             }
         }
         return response()->json(compact('isSuccess', 'response_status', 'message', 'data'));
+    }
+
+    public function deleteCartItem(Request $request){
+        $data = $this->shoppingCartTable->find($request->cart_id);
+
+        $isSuccess = false;
+        $message = "Gagal dihapus";
+
+        if ($data->delete()) {
+            $isSuccess = true;
+            $message = "berhasil dihapus";
+        }
+
+        return response()->json(compact('isSuccess', 'message'));
     }
 }
