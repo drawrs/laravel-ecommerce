@@ -7,6 +7,7 @@ use App\User;
 use App\Product;
 use App\ProductPhoto;
 use App\ShippingAddress;
+use App\ShoppingCart;
 use App\Category;
 use Auth;
 use DB;
@@ -19,6 +20,7 @@ class ApiController extends Controller
     protected $categoryTable;
     protected $productPhotoTable;
     protected $shippingAddressTable;
+    protected $shoppingCartTable;
 
     function __construct()
     {
@@ -27,6 +29,7 @@ class ApiController extends Controller
         $this->productTable = new Product;
         $this->productPhotoTable = new ProductPhoto;
         $this->shippingAddressTable = new ShippingAddress;
+        $this->shoppingCartTable = new ShoppingCart;
     }
     public function userLogin(Request $request){
         $email = $request->email;
@@ -288,5 +291,22 @@ class ApiController extends Controller
 
             return response()->json(compact('isSuccess', 'response_status', 'message', 'data'));
         }
+    }
+
+    public function getShoppingCarts(Request $request){
+        $data = $this->shoppingCartTable->where('user_id', $request->user_id)->get();
+        $isSuccess = true;
+        $message = "Berhasil mendapatkan data";
+
+        foreach ($data as $cart) {
+            $cart->product;
+        }
+
+        if (empty($data)) {
+            $isSuccess = false;
+            $message = "Tidak ada data untuk ditampilkan !";
+        }
+        
+        return response()->json(compact('isSuccess', 'response_status', 'message', 'data'));
     }
 }
