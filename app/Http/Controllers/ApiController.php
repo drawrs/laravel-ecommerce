@@ -349,4 +349,20 @@ class ApiController extends Controller
 
         return response()->json(compact('isSuccess', 'message'));
     }
+    public function insertShoppingCart(Request $request){
+        $data = $this->shoppingCartTable->create([
+            'user_id' => $request->user_id,
+            'product_id' => $request->product_id,
+            'qty' => $request->qty
+        ]);
+        $isSuccess = false;
+        $message = "Gagal meng-insert ke keranjang";
+
+        if (!empty($data)) {
+            $isSuccess = true;
+            $message = "Berhasil menginsert ke keranjang";
+        }
+
+        return response()->json(compact('isSuccess', 'message', 'data'));
+    }
 }
