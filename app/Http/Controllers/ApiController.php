@@ -9,6 +9,8 @@ use App\ProductPhoto;
 use App\ShippingAddress;
 use App\ShoppingCart;
 use App\Category;
+use App\Order;
+use App\ProductOrder;
 use Auth;
 use DB;
 
@@ -21,6 +23,8 @@ class ApiController extends Controller
     protected $productPhotoTable;
     protected $shippingAddressTable;
     protected $shoppingCartTable;
+    protected $orderTable;
+    protected $productOrderTable;
 
     function __construct()
     {
@@ -30,6 +34,8 @@ class ApiController extends Controller
         $this->productPhotoTable = new ProductPhoto;
         $this->shippingAddressTable = new ShippingAddress;
         $this->shoppingCartTable = new ShoppingCart;
+        $this->orderTable = new Order;
+        $this->productOrderTable = new ProductOrder;
     }
     public function userLogin(Request $request){
         $email = $request->email;
@@ -362,7 +368,49 @@ class ApiController extends Controller
             $isSuccess = true;
             $message = "Berhasil menginsert ke keranjang";
         }
+        return response()->json(compact('isSuccess', 'message', 'data'));
+    }
 
+    public function insertOrder(Request $request){
+        $user_id = $request->user_id;
+        $isSuccess = false;
+        $message = "Gagal order";
+        $data = null;
+
+        //todo 1 : Create 1 row data in order -> goals, get id of order
+        $order = $this->orderTable->create(compact('user_id'));
+
+        //todo 2 : Insert product to product order -> goals, product information and order id
+        $carts = $this->shoppingCartTable
+                        ->where('user_id', $user_id)
+                        ->get();
+        $dataInsertProductOrder = [];
+        foreach ($carts as $cart) {
+            $product = $cart->product;
+
+            $order_id = $order->id;
+            $category_id = $product->category_id;
+            $product_code = $product->product_code;
+            $title = $product->title;
+            $price = $product->price;
+            $description = $product->description;
+            $qty_order = $cart->qty;
+            $rating = $product->rating;
+
+            $dataInsertProductOrder[] = compact('order_id', 'category_id', 'product_code', 'title', 'price', 'description', 'qty_order', 'rating');
+        }
+        // insert
+        $insert_product_order = $this->productOrderTable->insert($dataInsertProductOrder); //boolean
+        
+
+        //todo 3 : Remove user item in shopping cart
+        $delete_cart = $this->shoppingCartTable->where('user_id', $user_id)->delete();
+
+        if (!empty($order) && $insert_product_order && ($delete_cart !== 0)) {
+            $isSuccess = true;
+            $message = "Order berhasil";
+            $data = $order;
+        }
         return response()->json(compact('isSuccess', 'message', 'data'));
     }
 }
