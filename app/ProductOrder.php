@@ -16,4 +16,11 @@ class ProductOrder extends Model
                             'description', 
                             'qty_order', 
                             'rating'];
+
+    public function productPhotos(){
+        return $this->hasMany('App\ProductPhoto', 'product_id', 'id');
+    }
+    public function category(){
+        return $this->belongsTo('App\Category', 'category_id', 'id');
+    }
 }

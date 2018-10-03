@@ -34,3 +34,4 @@ Route::any('insert-cart-item', 'ApiController@insertShoppingCart');
 Route::any('delete-cart-item', 'ApiController@deleteCartItem');
 
 Route::any('insert-order', 'ApiController@insertOrder');
+Route::any('get-orders', 'ApiController@getOrders');

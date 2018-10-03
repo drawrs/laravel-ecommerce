@@ -227,7 +227,19 @@ class ApiController extends Controller
 
     public function getUserProfile(Request $request){
         $data = $this->userTable->find($request->user_id);
-        $data->shippingAddress;
+
+        $data['selected_shipping_address'] = null;
+        $data['selected_shipping_city'] = null;
+        $data['selected_shipping_province'] = null;
+        $data['selected_shipping_zip_code'] = null;
+        foreach ($data->shippingAddress as $shippingAddress) {
+            if ($shippingAddress->is_main_address == "1") {
+                $data['selected_shipping_address'] = $shippingAddress->address;
+                $data['selected_shipping_city'] = $shippingAddress->city;
+                $data['selected_shipping_province'] = $shippingAddress->province;
+                $data['selected_shipping_zip_code'] = $shippingAddress->zip_code;
+            }
+        }
 
         $isSuccess = true;
         $message = "Berhasil mendapatkan data";
@@ -304,15 +316,20 @@ class ApiController extends Controller
         $isSuccess = true;
         $message = "Berhasil mendapatkan data";
 
+        $total_price = 0;
         foreach ($data as $cart) {
             $product = $cart->product;
             $product->category;
+
+            //append total price
+            $total_price += $cart->qty * $product->price;
 
             $product['product_cover'] = null;
             foreach($product->productPhotos as $photo){
                 if ($photo->is_cover == "1"){
                     $product['product_cover'] = $photo->file_name;
                 }
+
             }
         }
 
@@ -321,7 +338,7 @@ class ApiController extends Controller
             $message = "Tidak ada data untuk ditampilkan !";
         }
 
-        return response()->json(compact('isSuccess', 'response_status', 'message', 'data'));
+        return response()->json(compact('isSuccess', 'message', 'data', 'total_price'));
     }
     public function updateCartItemQty(Request $request)
     {
@@ -411,6 +428,41 @@ class ApiController extends Controller
             $message = "Order berhasil";
             $data = $order;
         }
+        return response()->json(compact('isSuccess', 'message', 'data'));
+    }
+
+    public function getOrders(Request $request)
+    {
+        $data = $this->orderTable
+                        ->where('user_id', $request->user_id)
+                        ->get();
+        $isSuccess = false;
+        $message = "Tidak ada data order";
+
+        if (!empty($data)) {
+            $isSuccess = true;
+            $message = "";
+
+            foreach ($data as $order) {
+                $products = $order->products;
+
+                foreach ($products as $product) {
+                    //open category
+                    $product->category;
+
+                    //set cover product
+                    $product['product_cover'] = null;
+
+                    //open photos
+                    foreach($product->productPhotos as $photo){
+                        if ($photo->is_cover == "1"){
+                            $product['product_cover'] = $photo->file_name;
+                        }
+                    }
+                }
+            }
+        }
+
         return response()->json(compact('isSuccess', 'message', 'data'));
     }
 }
