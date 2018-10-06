@@ -38,3 +38,5 @@ Route::any('get-orders', 'ApiController@getOrders');
 Route::any('get-order-detail', 'ApiController@getOrderDetail');
 
 Route::any('update-payment-proof', 'ApiController@postUpdatePaymentProof');
+Route::any('update-payment-proof', 'ApiController@postUpdatePaymentProof');
+Route::any('update-photo-profile', 'ApiController@postUpdatePhotoProfile');

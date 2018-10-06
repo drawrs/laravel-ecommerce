@@ -545,7 +545,7 @@ class ApiController extends Controller
         return response()->json(compact('isSuccess', 'message', 'data'));
     }
 
-    function postUpdatePaymentProof(Request $request){
+    public function postUpdatePaymentProof(Request $request){
         //$file_name = $request->file_name;
         $order_id = $request->order_id;
         $foto = function () use($request) {
@@ -586,6 +586,53 @@ class ApiController extends Controller
             if ($update) {
                 $isSuccess = true;
                 $data = $this->orderTable->find($order_id);
+                $message = "Berhasil Menyimpan";
+            }
+            $result = compact('isSuccess', 'message', 'data');
+            return response()->json($result);
+    }
+
+    public function postUpdatePhotoProfile(Request $request){
+        //$file_name = $request->file_name;
+        $user_id = $request->user_id;
+        $foto = function () use($request) {
+                                if (isset($request->file)) {
+                                    if ($request->hasFile('file')) {
+                                        //echo "Ini foto";
+                                        $file = $request->file('file');
+                                        //$request->file('photo')->move($destinationPath);
+                                        // Siapkan nama file
+                                        $picName = $file->getClientOriginalName();
+                                        $fileExtension = $file->getClientOriginalExtension();
+                                        // tambahkan markup waktu
+                                        $fileName = str_slug(Carbon::now() . "_" . md5($picName)) . "." . $fileExtension;
+                                        // tujuan folder
+                                        $destinationPath = 'user_photo';
+                                        // pindahkan ke folder tujuan
+                                        $file->move($destinationPath, $fileName);
+                                    } else {
+                                        // nama foto kalau ngga ada
+                                        $fileName = "no_pic.png";
+                                    }
+
+                                    return $fileName;
+                                } else {
+                                    return null;
+                                }
+                            };
+            $photo = $foto();
+
+            $update = $this->userTable
+                        ->find($user_id)
+                        ->update(compact('photo'));
+
+            $isSuccess = false;
+            $data = null;
+            $message = "Gagal menyimpan foto profil";
+
+            if ($update) {
+                $isSuccess = true;
+                $data = $this->userTable->find($user_id);
                 $message = "Berhasil Menyimpan";
             }
             $result = compact('isSuccess', 'message', 'data');
