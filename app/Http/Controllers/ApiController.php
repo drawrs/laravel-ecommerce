@@ -12,6 +12,7 @@ use App\Category;
 use App\Order;
 use App\ProductOrder;
 use Auth;
+use Carbon\Carbon;
 use DB;
 
 class ApiController extends Controller
@@ -102,6 +103,10 @@ class ApiController extends Controller
             $products = $this->productTable
                             ->where('title', 'LIKE', '%'. $keyword .'%')
                             ->orWhere('description', 'LIKE', '%'. $keyword .'%')
+                            ->get();
+        } elseif ($request->has('category_id')) {
+            $products = $this->productTable
+                            ->where('category_id', $request->category_id)
                             ->get();
         } else {
             $products = $this->productTable->all();
@@ -387,6 +392,15 @@ class ApiController extends Controller
         }
         return response()->json(compact('isSuccess', 'message', 'data'));
     }
+    public function str_char_rand($length = 10) {
+        $characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $charactersLength = strlen($characters);
+        $randomString = '';
+        for ($i = 0; $i < $length; $i++) {
+            $randomString .= $characters[rand(0, $charactersLength - 1)];
+        }
+        return $randomString;
+    }
 
     public function insertOrder(Request $request){
         $user_id = $request->user_id;
@@ -394,8 +408,31 @@ class ApiController extends Controller
         $message = "Gagal order";
         $data = null;
 
+        /************
+        * TODO : 1
+        * ORDER CODE GENERATOR
+        ************/
+        // get last oder id
+        $last_order_id = is_null($order = $this->orderTable->orderBy('id', 'desc')
+                                        ->first()) ? 0: $order->id;
+        $random_str = strtoupper($this->str_char_rand(3));
+
+        if ($last_order_id < 9) {
+            $order_code = $random_str . "-0000" . ($last_order_id + 1);
+        } elseif ($last_order_id < 99) {
+            $order_code = $random_str . "-000" . ($last_order_id + 1);
+        } elseif ($last_order_id < 999) {
+            $order_code = $random_str . "-00" . ($last_order_id + 1);
+        } elseif ($last_order_id < 999) {
+            $order_code = $random_str . "-0" . ($last_order_id + 1);
+        } else {
+            $order_code = $random_str . "-" . ($last_order_id + 1);
+        }
+        // get shipping address
+        $mainShippingAddress = $this->shippingAddressTable->where(['user_id' => $user_id, 'is_main_address' => '1'])->first();
+        $shipping_address = $mainShippingAddress->address;
         //todo 1 : Create 1 row data in order -> goals, get id of order
-        $order = $this->orderTable->create(compact('user_id'));
+        $order = $this->orderTable->create(compact('user_id', 'order_code', 'shipping_address'));
 
         //todo 2 : Insert product to product order -> goals, product information and order id
         $carts = $this->shoppingCartTable
@@ -414,7 +451,16 @@ class ApiController extends Controller
             $qty_order = $cart->qty;
             $rating = $product->rating;
 
-            $dataInsertProductOrder[] = compact('order_id', 'category_id', 'product_code', 'title', 'price', 'description', 'qty_order', 'rating');
+            //insert cover
+            //open photos
+            foreach($product->productPhotos as $photo){
+                if ($photo->is_cover == "1"){
+                    $cover = $photo->file_name;
+                }
+            }
+
+
+            $dataInsertProductOrder[] = compact('order_id', 'category_id', 'product_code', 'title', 'price', 'description', 'qty_order', 'rating', 'cover');
         }
         // insert
         $insert_product_order = $this->productOrderTable->insert($dataInsertProductOrder); //boolean
@@ -464,5 +510,85 @@ class ApiController extends Controller
         }
 
         return response()->json(compact('isSuccess', 'message', 'data'));
+    }
+
+    public function getOrderDetail(Request $request)
+    {
+        $data = $this->orderTable
+                        ->find($request->order_id);
+        $isSuccess = false;
+        $message = "Tidak ada data order";
+
+        if (!empty($data)) {
+            $isSuccess = true;
+            $message = "";
+
+            $products = $data->products;
+
+            $data['total_price'] = 0;
+            foreach ($products as $product) {
+                //append total price
+                $data['total_price'] += $product->qty_order * $product->price;
+                //open category
+                $product->category;
+                //set cover product
+                $product['product_cover'] = null;
+                //open photos
+                foreach($product->productPhotos as $photo){
+                    if ($photo->is_cover == "1"){
+                        $product['product_cover'] = $photo->file_name;
+                    }
+                }
+            }
+        }
+
+        return response()->json(compact('isSuccess', 'message', 'data'));
+    }
+
+    function postUpdatePaymentProof(Request $request){
+        //$file_name = $request->file_name;
+        $order_id = $request->order_id;
+        $foto = function () use($request) {
+                                if (isset($request->file)) {
+                                    if ($request->hasFile('file')) {
+                                        //echo "Ini foto";
+                                        $file = $request->file('file');
+                                        //$request->file('photo')->move($destinationPath);
+                                        // Siapkan nama file
+                                        $picName = $file->getClientOriginalName();
+                                        $fileExtension = $file->getClientOriginalExtension();
+                                        // tambahkan markup waktu
+                                        $fileName = str_slug(Carbon::now() . "_" . md5($picName)) . "." . $fileExtension;
+                                        // tujuan folder
+                                        $destinationPath = 'document';
+                                        // pindahkan ke folder tujuan
+                                        $file->move($destinationPath, $fileName);
+                                    } else {
+                                        // nama foto kalau ngga ada
+                                        $fileName = "no_pic.png";
+                                    }
+
+                                    return $fileName;
+                                } else {
+                                    return null;
+                                }
+                            };
+            $payment_proof = $foto();
+
+            $update = $this->orderTable
+                        ->find($order_id)
+                        ->update(compact('payment_proof'));
+
+            $isSuccess = false;
+            $data = null;
+            $message = "Gagal menyimpan bukti pembayaran";
+
+            if ($update) {
+                $isSuccess = true;
+                $data = $this->orderTable->find($order_id);
+                $message = "Berhasil Menyimpan";
+            }
+            $result = compact('isSuccess', 'message', 'data');
+            return response()->json($result);
     }
 }

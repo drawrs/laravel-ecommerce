@@ -35,3 +35,6 @@ Route::any('delete-cart-item', 'ApiController@deleteCartItem');
 
 Route::any('insert-order', 'ApiController@insertOrder');
 Route::any('get-orders', 'ApiController@getOrders');
+Route::any('get-order-detail', 'ApiController@getOrderDetail');
+
+Route::any('update-payment-proof', 'ApiController@postUpdatePaymentProof');

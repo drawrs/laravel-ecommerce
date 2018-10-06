@@ -15,6 +15,7 @@ class ProductOrder extends Model
                             'price', 
                             'description', 
                             'qty_order', 
+                            'cover', 
                             'rating'];
 
     public function productPhotos(){
